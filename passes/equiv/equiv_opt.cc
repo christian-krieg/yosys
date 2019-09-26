@@ -44,7 +44,13 @@ struct EquivOptPass:public ScriptPass
 		log("        useful for handling architecture-specific primitives.\n");
 		log("\n");
 		log("    -assert\n");
-		log("        produce an error if the circuits are not equivalent\n");
+		log("        produce an error if the circuits are not equivalent.\n");
+		log("\n");
+		log("    -multiclock\n");
+		log("        run clk2fflogic before equivalence checking.\n");
+		log("\n");
+		log("    -undef\n");
+		log("        enable modelling of undef states during equiv_induct.\n");
 		log("\n");
 		log("The following commands are executed by this verification command:\n");
 		help_script();
@@ -52,13 +58,15 @@ struct EquivOptPass:public ScriptPass
 	}
 
 	std::string command, techmap_opts;
-	bool assert;
+	bool assert, undef, multiclock;
 
 	void clear_flags() YS_OVERRIDE
 	{
 		command = "";
 		techmap_opts = "";
 		assert = false;
+		undef = false;
+		multiclock = false;
 	}
 
 	void execute(std::vector < std::string > args, RTLIL::Design * design) YS_OVERRIDE
@@ -84,12 +92,20 @@ struct EquivOptPass:public ScriptPass
 				assert = true;
 				continue;
 			}
+			if (args[argidx] == "-undef") {
+				undef = true;
+				continue;
+			}
+			if (args[argidx] == "-multiclock") {
+				multiclock = true;
+				continue;
+			}
 			break;
 		}
 
 		for (; argidx < args.size(); argidx++) {
 			if (command.empty()) {
-				if (args[argidx].substr(0, 1) == "-")
+				if (args[argidx].compare(0, 1, "-") == 0)
 					cmd_error(args, argidx, "Unknown option.");
 			} else {
 				command += " ";
@@ -138,8 +154,15 @@ struct EquivOptPass:public ScriptPass
 		}
 
 		if (check_label("prove")) {
+			if (multiclock || help_mode)
+				run("clk2fflogic", "(only with -multiclock)");
 			run("equiv_make gold gate equiv");
-			run("equiv_induct equiv");
+			if (help_mode)
+				run("equiv_induct [-undef] equiv");
+			else if (undef)
+				run("equiv_induct -undef equiv");
+			else
+				run("equiv_induct equiv");
 			if (help_mode)
 				run("equiv_status [-assert] equiv");
 			else if (assert)

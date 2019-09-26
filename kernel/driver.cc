@@ -522,6 +522,12 @@ int main(int argc, char **argv)
 	if (!backend_command.empty())
 		run_backend(output_filename, backend_command);
 
+	yosys_design->check();
+	for (auto it : saved_designs)
+		it.second->check();
+	for (auto it : pushed_designs)
+		it->check();
+
 	if (!depsfile.empty())
 	{
 		FILE *f = fopen(depsfile.c_str(), "wt");
@@ -529,13 +535,13 @@ int main(int argc, char **argv)
 			log_error("Can't open dependencies file for writing: %s\n", strerror(errno));
 		bool first = true;
 		for (auto fn : yosys_output_files) {
-			fprintf(f, "%s%s", first ? "" : " ", fn.c_str());
+			fprintf(f, "%s%s", first ? "" : " ", escape_filename_spaces(fn).c_str());
 			first = false;
 		}
 		fprintf(f, ":");
 		for (auto fn : yosys_input_files) {
 			if (yosys_output_files.count(fn) == 0)
-				fprintf(f, " %s", fn.c_str());
+				fprintf(f, " %s", escape_filename_spaces(fn).c_str());
 		}
 		fprintf(f, "\n");
 	}
