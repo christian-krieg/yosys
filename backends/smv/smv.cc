@@ -501,6 +501,14 @@ struct SmvWorker
 				continue;
 			}
 
+			if (cell->type == "$dlatch")
+			{
+				vars.push_back(stringf("%s : unsigned word[%d]; -- %s", lvalue(cell->getPort("\\Q")), GetSize(cell->getPort("\\Q")), log_signal(cell->getPort("\\Q"))));
+				vars.push_back(stringf("%s : unsigned word[%d]; -- %s", rvalue(cell->getPort("\\EN")), GetSize(cell->getPort("\\EN")), log_signal(cell->getPort("\\EN"))));
+				assignments.push_back(stringf("if(%s) next(%s) := next(%s);", rvalue(cell->getPort("\\EN")), lvalue(cell->getPort("\\Q")), rvalue(cell->getPort("\\D"))));
+				continue;
+			}
+
 			if (cell->type.in("$_BUF_", "$_NOT_"))
 			{
 				string op = cell->type == "$_NOT_" ? "!" : "";
