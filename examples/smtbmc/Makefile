@@ -1,9 +1,13 @@
 
-all: demo1 demo2 demo3 demo4 demo5 demo6 demo7 demo8
+all: demo1 demo1a demo2 demo3 demo4 demo5 demo6 demo7 demo8
 
 demo1: demo1.smt2
 	yosys-smtbmc --dump-vcd demo1.vcd demo1.smt2
 	yosys-smtbmc -i --dump-vcd demo1.vcd demo1.smt2
+
+demo1a: demo1a.smt2
+	yosys-smtbmc --dump-vcd demo1a.vcd demo1a.smt2
+	yosys-smtbmc -i --dump-vcd demo1a.vcd demo1a.smt2
 
 demo2: demo2.smt2
 	yosys-smtbmc -g --dump-vcd demo2.vcd --dump-smtc demo2.smtc --dump-vlogtb demo2_tb.v demo2.smt2
@@ -30,6 +34,9 @@ demo8: demo8.smt2
 
 demo1.smt2: demo1.v
 	yosys -ql demo1.yslog -p 'read_verilog -formal demo1.v; prep -top demo1 -nordff; write_smt2 -wires demo1.smt2'
+
+demo1a.smt2: demo1a.v
+	yosys -ql demo1a.yslog -p 'read_verilog -formal demo1a.v; prep -top demo1 -nordff; write_smt2 -wires demo1a.smt2'
 
 demo2.smt2: demo2.v
 	yosys -ql demo2.yslog -p 'read_verilog -formal demo2.v; prep -top demo2 -nordff; write_smt2 -wires demo2.smt2'
